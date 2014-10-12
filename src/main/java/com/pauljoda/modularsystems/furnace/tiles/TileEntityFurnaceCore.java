@@ -19,6 +19,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntityFurnace;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Random;
 
 public class TileEntityFurnaceCore extends ModularTileEntity implements ISidedInventory
@@ -801,54 +803,53 @@ public class TileEntityFurnaceCore extends ModularTileEntity implements ISidedIn
                 startZ = zCoord;
         }
 
+        Map<Block, Integer> blockCounts = new LinkedHashMap<Block, Integer>();
+
         int horizMax = hMin + hMax;
         int vertMax = vMin + vMax;
 
         for (int horiz = 0; horiz <= horizMax; horiz++)    // Horizontal (X or Z)
         {
-            for (int vert = 0; vert <= vertMax; vert++)   // Vertical (Y)
+            for (int depth = 0; depth <= depthVal + 1; depth++) // Depth (Z or X)
             {
-                for (int depth = 0; depth <= depthVal + 1; depth++) // Depth (Z or X)
+                int x;
+                int z;
+                switch(dir)
                 {
-                    int x;
+                    case 2 :
+                        x = startX - horiz;
+                        z = startZ + depth;
+                        break;
+                    case 3 :
+                        x = startX + horiz;
+                        z = startZ - depth;
+                        break;
+                    case 4 :
+                        x = startX + depth;
+                        z = startZ + horiz;
+                        break;
+                    case 5 :
+                        x = startX - depth;
+                        z = startZ - horiz;
+                        break;
+                    default :
+                        x = 0;
+                        z = 0;
+                }
+                for (int vert = 0; vert <= vertMax; vert++)   // Vertical (Y)
+                {
                     int y = startY + vert;
-                    int z;
-                    switch(dir)
-                    {
-                        case 2 :
-                            x = startX - horiz;
-                            z = startZ + depth;
-                            break;
-                        case 3 :
-                            x = startX + horiz;
-                            z = startZ - depth;
-                            break;
-                        case 4 :
-                            x = startX + depth;
-                            z = startZ + horiz;
-                            break;
-                        case 5 :
-                            x = startX - depth;
-                            z = startZ - horiz;
-                            break;
-                        default :
-                            x = 0;
-                            z = 0;
-                    }
                     Block blockId = worldObj.getBlock(x, y, z);
-                    if (x == xCoord && y == yCoord && z == zCoord)
+                    if ((
+                            x == xCoord &&
+                            y == yCoord &&
+                            z == zCoord
+                        ) || (
+                            horiz == horizMax &&
+                            vert == vertMax &&
+                            depth == depthVal + 1
+                    )) {
                         continue;
-
-                    if (horiz > 0 && horiz < horizMax)
-                    {
-                        if (vert > 0 && vert < vertMax)
-                        {
-                            if (depth > 0 && depth < depthVal + 1)
-                            {
-                                continue;
-                            }
-                        }
-
                     }
                     if (blockId == BlockManager.furnaceDummy)
                     {

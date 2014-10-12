@@ -2,6 +2,8 @@ package com.pauljoda.modularsystems.core.helper;
 
 import com.pauljoda.modularsystems.core.structures.BlockValue;
 import com.pauljoda.modularsystems.core.structures.MaterialValue;
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -16,13 +18,15 @@ import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class BlockValueHelper
 {
-    public static List<BlockValue>blockValues = new ArrayList<BlockValue>();
-    public static List<MaterialValue>materialValues = new ArrayList<MaterialValue>();
+    private static Map<String, BlockValue> blockValuesMap = new LinkedHashMap<String, BlockValue>();
+    private static Map<Material, MaterialValue> materialValuesMap = new LinkedHashMap<Material, MaterialValue>();
+
+    private BlockValueHelper() {}
 
     public static void init() throws ParserConfigurationException, TransformerException, IOException, SAXException
     {
@@ -44,14 +48,12 @@ public class BlockValueHelper
 
         for (int temp = 0; temp < nList.getLength(); temp++)
         {
-
             Node nNode = nList.item(temp);
             if (nNode.getNodeType() == Node.ELEMENT_NODE)
             {
-
                 Element eElement = (Element) nNode;
-                BlockValue block = new BlockValue(eElement.getAttribute("unlocalizedName"), eElement.getElementsByTagName("speedValue").item(0).getTextContent(), eElement.getElementsByTagName("efficiencyValue").item(0).getTextContent());
-                blockValues.add(block);
+                BlockValue block = BlockValue.fromConfigElement(eElement);
+                blockValuesMap.put(block.getUnlocalizedName(), block);
             }
         }
 
@@ -59,14 +61,12 @@ public class BlockValueHelper
 
         for (int temp = 0; temp < nList.getLength(); temp++)
         {
-
             Node nNode = nList.item(temp);
             if (nNode.getNodeType() == Node.ELEMENT_NODE)
             {
-
                 Element eElement = (Element) nNode;
-                MaterialValue material = new MaterialValue(MaterialValue.getMaterialFromString(eElement.getAttribute("name")), Double.parseDouble(eElement.getElementsByTagName("speedValue").item(0).getTextContent()), Double.parseDouble(eElement.getElementsByTagName("efficiencyValue").item(0).getTextContent()));
-                materialValues.add(material);
+                MaterialValue m = MaterialValue.fromConfigElement(eElement);
+                materialValuesMap.put(m.getMaterial(), m);
             }
         }
     }
@@ -84,7 +84,14 @@ public class BlockValueHelper
             flag = false;
             LogHelper.error(e.getMessage());
         }
-        if(flag)
-        init();
+        if(flag) init();
+    }
+
+    public static BlockValue getBlockValueForBlock(Block block) {
+        return blockValuesMap.get(block.getUnlocalizedName());
+    }
+
+    public static MaterialValue getMaterialValueForBlock(Block block) {
+        return materialValuesMap.get(block.getMaterial());
     }
 }

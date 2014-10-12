@@ -3,6 +3,8 @@ package com.pauljoda.modularsystems.core.lib;
 import com.pauljoda.modularsystems.core.helper.BlockValueHelper;
 import com.pauljoda.modularsystems.core.helper.ConfigHelper;
 import com.pauljoda.modularsystems.core.managers.BlockManager;
+import com.pauljoda.modularsystems.core.structures.BlockValue;
+import com.pauljoda.modularsystems.core.structures.MaterialValue;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -83,33 +85,28 @@ public class Reference {
     //FURNACE: Gets Speed Multiplier
     public static double getSpeedMultiplierForBlock(Block block)
     {
-         for(int i = 0; i < BlockValueHelper.blockValues.size(); i++)
-         {
-            if(BlockValueHelper.blockValues.get(i).compareBlock(block))
-            return BlockValueHelper.blockValues.get(i).getSpeedValue();
-         }
-        for(int i = 0; i < BlockValueHelper.materialValues.size(); i++)
-        {
-            if(BlockValueHelper.materialValues.get(i).compareBlock(block))
-                return BlockValueHelper.materialValues.get(i).getSpeedValue();
-        }
+        BlockValue blockValue = BlockValueHelper.getBlockValueForBlock(block);
+        MaterialValue materialValue = BlockValueHelper.getMaterialValueForBlock(block);
+        if (blockValue != null) {
+            return blockValue.getSpeedValue();
+        } else if (materialValue != null) {
+            return materialValue.getSpeedValue();
+        } else {
             return 0;
+        }
     }
 
     //FURNACE: Gets Efficiency Multiplier
     public static double getEfficiencyMultiplierForBlock(Block block)
     {
-
-        for(int i = 0; i < BlockValueHelper.blockValues.size(); i++)
-        {
-            if(BlockValueHelper.blockValues.get(i).compareBlock(block))
-                return BlockValueHelper.blockValues.get(i).getEfficiencyValue();
-        }
-        for(int i = 0; i < BlockValueHelper.materialValues.size(); i++)
-        {
-            if(BlockValueHelper.materialValues.get(i).compareBlock(block))
-                return BlockValueHelper.materialValues.get(i).getEfficiencyValue();
-        }
+        BlockValue blockValue = BlockValueHelper.getBlockValueForBlock(block);
+        MaterialValue materialValue = BlockValueHelper.getMaterialValueForBlock(block);
+        if (blockValue != null) {
+            return blockValue.getEfficiencyValue();
+        } else if (materialValue != null) {
+            return materialValue.getEfficiencyValue();
+        } else {
             return 0.0;
+        }
     }
 }

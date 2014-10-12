@@ -2,6 +2,7 @@ package com.pauljoda.modularsystems.core.structures;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import org.w3c.dom.Element;
 
 public class MaterialValue
 {
@@ -26,6 +27,10 @@ public class MaterialValue
         return efficiencyValue;
     }
 
+    public Material getMaterial() {
+        return material;
+    }
+
     public boolean compareBlock(Block block)
     {
         return block.getMaterial() == material;
@@ -40,4 +45,20 @@ public class MaterialValue
         return null;
     }
 
+    public static MaterialValue fromConfigElement(Element element) {
+
+        return MaterialValue.fromConfigValues(
+                element.getAttribute("name"),
+                element.getElementsByTagName("speedValue").item(0).getTextContent(),
+                element.getElementsByTagName("efficiencyValue").item(0).getTextContent()
+        );
+    }
+
+    public static MaterialValue fromConfigValues(String matName, String speed, String efficiency) {
+        return new MaterialValue(
+                getMaterialFromString(matName),
+                Double.parseDouble(speed),
+                Double.parseDouble(efficiency)
+        );
+    }
 }
