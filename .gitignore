@@ -11,6 +11,8 @@ CREDITS-fml.txt
 *.prefs
 *.launch
 eclipse/*
-src/api/*
 src/main/config
 src/main/logs
+src/main/crash-reports/
+src/main/options.txt
+src/main/saves

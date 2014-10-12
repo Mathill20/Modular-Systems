@@ -4,6 +4,8 @@ import com.pauljoda.modularsystems.core.ModularSystems;
 import com.pauljoda.modularsystems.core.helper.ConfigHelper;
 import com.pauljoda.modularsystems.core.lib.Reference;
 import com.pauljoda.modularsystems.core.managers.BlockManager;
+import com.pauljoda.modularsystems.core.util.Coord;
+import com.pauljoda.modularsystems.helpers.LocalBlockCollections;
 import com.pauljoda.modularsystems.storage.tiles.TileEntityStorageCore;
 import com.pauljoda.modularsystems.storage.tiles.TileEntityStorageExpansion;
 import cpw.mods.fml.relauncher.Side;
@@ -63,8 +65,8 @@ public class BlockBasicExpansion extends BlockContainer {
 
 		if(dummy.getCore() == null || world.getBlockMetadata(x, y, z) == 1)
 		{
-			if(world.isRemote)
-				player.addChatComponentMessage(new ChatComponentText(EnumChatFormatting.RED + "Could not locate core, please provide a connection"));
+            if (world.isRemote)
+                player.addChatComponentMessage(new ChatComponentText(EnumChatFormatting.RED + "Could not locate core, please provide a connection"));
 		}
 		return true;
 	}
@@ -76,76 +78,40 @@ public class BlockBasicExpansion extends BlockContainer {
 
 		boolean registered = false;
 		//Look for the Core
-		for(int i = -1; i <= 1; i++)
-		{
-			for(int j = -1; j <= 1; j++)
-			{
-				for(int k = -1; k <= 1; k++)
-				{
-					//Checks to make sure we are looking at only adjacent blocks
-					if(!(Math.abs(i) == 1 ? (Math.abs(j) == 0 && Math.abs(k) == 0) : ((Math.abs(j) == 1) ? Math.abs(k) == 0 : Math.abs(k) == 1)))
-						continue;
-
-					Block localBlock = world.getBlock(i + x, j + y, k + z);
-					if(localBlock == BlockManager.storageCore)
-					{
-						TileEntityStorageCore core = (TileEntityStorageCore)world.getTileEntity(i + x, j + y, k + z);
-						if(core.inventoryRows < ConfigHelper.maxExpansionSize)
-						{
-							expansion.setCore(core);
-
-						    expansion.setUpgradeToCore(world.getBlock(x,y,z));
-
-							world.markBlockForUpdate(core.xCoord, core.yCoord, core.zCoord);
-							registered = true;
-							break;
-						}
-					}
-				}
-			}
-		}
+        for (Coord coord : LocalBlockCollections.getAdjacentBlocks()) {
+            Block localBlock = world.getBlock(x + coord.x, y + coord.y, z + coord.z);
+            if(localBlock == BlockManager.storageCore) {
+                TileEntityStorageCore core = (TileEntityStorageCore)world.getTileEntity(x + coord.x, y + coord.y, z + coord.z);
+                if(core.inventoryRows < ConfigHelper.maxExpansionSize) {
+                    expansion.setCore(core);
+                    expansion.setUpgradeToCore(world.getBlock(x,y,z));
+                    world.markBlockForUpdate(core.xCoord, core.yCoord, core.zCoord);
+                    registered = true;
+                    break;
+                }
+            }
+        }
 
 		//Build off chain
-		if(!registered)
-		{
-			for(int i = -1; i <= 1; i++)
-			{
-				for(int j = -1; j <= 1; j++)
-				{
-					for(int k = -1; k <= 1; k++)
-					{
-						//Checks to make sure we are looking at only adjacent blocks
-						if(!(Math.abs(i) == 1 ? (Math.abs(j) == 0 && Math.abs(k) == 0) : ((Math.abs(j) == 1) ? Math.abs(k) == 0 : Math.abs(k) == 1)))
-							continue;
-
-						Block localBlock = world.getBlock(i + x, j + y, k + z);
-						if(isStorageExpansion(localBlock)  && !registered)
-						{
-							TileEntityStorageExpansion parent = (TileEntityStorageExpansion)world.getTileEntity(i + x, j + y, k + z);
-
-							if(parent.getCore() != null && parent.isConnected)
-							{
-								TileEntityStorageCore core = parent.getCore();
-								if(core.inventoryRows < ConfigHelper.maxExpansionSize)
-								{
-									expansion.setCore(core);
-
-                                    expansion.setUpgradeToCore(world.getBlock(x,y,z));
-
-                                    world.markBlockForUpdate(core.xCoord, core.yCoord, core.zCoord);
-									world.markBlockForUpdate(i + x, j + y, k + z);
-									registered = true;
-									break;
-								}
-
-							}
-							else
-								world.setBlockMetadataWithNotify(x, y, z, 1, 2);
-
-						}
-					}
-				}
-			}
+		if(!registered) {
+            for (Coord coord : LocalBlockCollections.getAdjacentBlocks()) {
+                Block localBlock = world.getBlock(x + coord.x, y + coord.y, z + coord.z);
+                if(isStorageExpansion(localBlock)  && !registered) {
+                    TileEntityStorageExpansion parent = (TileEntityStorageExpansion) world.getTileEntity(x + coord.x, y + coord.y, z + coord.z);
+                    if (parent.getCore() != null && parent.isConnected) {
+                        TileEntityStorageCore core = parent.getCore();
+                        if (core.inventoryRows < ConfigHelper.maxExpansionSize) {
+                            expansion.setCore(core);
+                            expansion.setUpgradeToCore(world.getBlock(x, y, z));
+                            world.markBlockForUpdate(core.xCoord, core.yCoord, core.zCoord);
+                            world.markBlockForUpdate(x + coord.x, y + coord.y, z + coord.z);
+                            break;
+                        }
+                    } else {
+                        world.setBlockMetadataWithNotify(x, y, z, 1, 2);
+                    }
+                }
+            }
 		}
 		super.onBlockPlacedBy(world, x, y, z, par5EntityLivingBase, itemstack);
 	}
