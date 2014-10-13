@@ -214,10 +214,10 @@ public class TileEntityStorageExpansion extends ModularTileEntity implements IIn
         //Check for connections
         if(cooldown < 0 && !worldObj.isRemote)
         {
-            if(!isConnected() && isConnected)
-                invalidateCore();
-            else if(isConnected() && !isConnected)
-                validateCore();
+            //This is slightly different behavior, but waiting for the next tick will hardly break the system.
+            boolean connectedCheck = isConnected();
+            if(connectedCheck && isConnected) invalidateCore();
+            else if(connectedCheck && !isConnected) validateCore();
             cooldown = 20;
         }
         else if(cooldown > 20 && !worldObj.isRemote)
